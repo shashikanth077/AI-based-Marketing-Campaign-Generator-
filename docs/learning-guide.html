@@ -1,0 +1,815 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Campaign Generator Study Guide</title>
+<meta name="description" content="Interactive learning guide for the AI-Based Marketing Campaign Generator: theory, code walkthrough, ReAct trace, quizzes and interview questions.">
+<style>
+:root{
+  --bg:#f7f7f5; --surface:#ffffff; --surface-2:#f0efec; --text:#1d1d1f; --muted:#5f5f66;
+  --border:#e2e1dc; --accent:#3d5afe; --accent-soft:#e8ecff; --accent-text:#2236c9;
+  --good:#1b7f4b; --good-soft:#e3f4ea; --bad:#b3261e; --bad-soft:#fbe7e5; --warn:#8a5a00; --warn-soft:#fff3d6;
+  --code-bg:#f3f2ef; --code-text:#2b2b2b; --kw:#8a2bb5; --str:#1b7f4b; --com:#8b8b8b;
+  --radius:12px; --shadow:0 1px 2px rgba(0,0,0,.05),0 4px 16px rgba(0,0,0,.04);
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter,Helvetica,Arial,sans-serif;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#121214; --surface:#1b1b1f; --surface-2:#232328; --text:#ececf1; --muted:#a3a3ad;
+    --border:#2e2e35; --accent:#8c9eff; --accent-soft:#252b4d; --accent-text:#b4c0ff;
+    --good:#5fd394; --good-soft:#173726; --bad:#ff8a80; --bad-soft:#3d1b19; --warn:#ffcf66; --warn-soft:#3a2e12;
+    --code-bg:#17171b; --code-text:#e6e6ea; --kw:#d7a6ff; --str:#8fe0b0; --com:#7c7c86;
+    --shadow:0 1px 2px rgba(0,0,0,.4);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#121214; --surface:#1b1b1f; --surface-2:#232328; --text:#ececf1; --muted:#a3a3ad;
+  --border:#2e2e35; --accent:#8c9eff; --accent-soft:#252b4d; --accent-text:#b4c0ff;
+  --good:#5fd394; --good-soft:#173726; --bad:#ff8a80; --bad-soft:#3d1b19; --warn:#ffcf66; --warn-soft:#3a2e12;
+  --code-bg:#17171b; --code-text:#e6e6ea; --kw:#d7a6ff; --str:#8fe0b0; --com:#7c7c86;
+  --shadow:0 1px 2px rgba(0,0,0,.4);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:72px}
+body{margin:0;background:var(--bg);color:var(--text);font:16px/1.65 var(--sans);-webkit-font-smoothing:antialiased}
+a{color:var(--accent-text)}
+header.top{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:12px;padding:10px 16px;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--border)}
+header.top .brand{font-weight:700;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+header.top .spacer{flex:1}
+.progress-pill{font-size:13px;color:var(--muted);white-space:nowrap}
+button,.btn{font:inherit;font-size:14px;border:1px solid var(--border);background:var(--surface);color:var(--text);padding:6px 12px;border-radius:8px;cursor:pointer}
+button:hover{border-color:var(--accent)}
+button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+:root[data-theme="dark"] button.primary{color:#111}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) button.primary{color:#111}}
+button:focus-visible,input:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+#menuBtn{display:none}
+.layout{display:grid;grid-template-columns:250px minmax(0,1fr);max-width:1240px;margin:0 auto}
+nav.side{position:sticky;top:57px;align-self:start;height:calc(100vh - 57px);overflow:auto;padding:20px 12px 40px 16px;border-right:1px solid var(--border)}
+nav.side a{display:block;padding:5px 10px;border-radius:8px;color:var(--muted);text-decoration:none;font-size:14px}
+nav.side a:hover{background:var(--surface-2);color:var(--text)}
+nav.side a.active{background:var(--accent-soft);color:var(--accent-text);font-weight:600}
+nav.side .grp{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:16px 10px 4px}
+main{padding:24px 32px 80px;min-width:0}
+section{margin:0 0 56px}
+h1{font-size:2rem;line-height:1.2;letter-spacing:-.02em;margin:.2em 0 .4em}
+h2{font-size:1.5rem;letter-spacing:-.01em;margin:0 0 .6em;padding-top:8px}
+h3{font-size:1.1rem;margin:1.6em 0 .5em}
+p{margin:.5em 0 1em}
+.lead{font-size:1.1rem;color:var(--muted);max-width:70ch}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px;box-shadow:var(--shadow);margin:14px 0}
+.grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+.grid .card{margin:0}
+.tag{display:inline-block;font-size:12px;font-weight:600;padding:2px 8px;border-radius:999px;background:var(--surface-2);color:var(--muted);margin-right:6px}
+.tag.easy{background:var(--good-soft);color:var(--good)}
+.tag.medium{background:var(--warn-soft);color:var(--warn)}
+.tag.hard{background:var(--bad-soft);color:var(--bad)}
+.callout{border-left:4px solid var(--accent);background:var(--accent-soft);padding:12px 16px;border-radius:0 10px 10px 0;margin:14px 0}
+.callout.warn{border-color:var(--warn);background:var(--warn-soft)}
+.callout.good{border-color:var(--good);background:var(--good-soft)}
+.callout strong:first-child{display:block;margin-bottom:2px}
+code{overflow-wrap:anywhere;font-family:var(--mono);font-size:.88em;background:var(--code-bg);padding:1px 5px;border-radius:5px}
+pre{background:var(--code-bg);color:var(--code-text);border:1px solid var(--border);border-radius:10px;padding:14px 16px;overflow:auto;font:13.5px/1.55 var(--mono);margin:12px 0}
+pre code{background:none;padding:0;font-size:inherit;overflow-wrap:normal}
+.kw{color:var(--kw)} .st{color:var(--str)} .cm{color:var(--com);font-style:italic}
+table{border-collapse:collapse;width:100%;font-size:14px;margin:12px 0}
+.table-wrap{overflow-x:auto}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top}
+th{color:var(--muted);font-weight:600;font-size:13px}
+details{background:var(--surface);border:1px solid var(--border);border-radius:10px;margin:8px 0;padding:0 14px}
+details[open]{padding-bottom:12px}
+summary{cursor:pointer;padding:12px 0;font-weight:600;list-style:none;display:flex;gap:8px;align-items:flex-start}
+summary::-webkit-details-marker{display:none}
+summary::before{content:"▸";color:var(--muted);transition:transform .15s;flex:none}
+details[open]>summary::before{transform:rotate(90deg)}
+.qa summary .qtext{flex:1}
+.qa .known{margin-left:auto;font-size:12px;padding:2px 8px;flex:none}
+.qa.is-known{border-color:var(--good)}
+.qa.is-known .known{background:var(--good-soft);border-color:var(--good);color:var(--good)}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:12px 0}
+.toolbar input[type=search]{flex:1;min-width:180px;font:inherit;padding:8px 12px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text)}
+.chip{font-size:13px;padding:4px 10px;border-radius:999px}
+.chip.on{background:var(--accent);border-color:var(--accent);color:#fff}
+:root[data-theme="dark"] .chip.on{color:#111}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .chip.on{color:#111}}
+/* diagram */
+.diagram svg{width:100%;height:auto;display:block}
+.diagram .node rect{fill:var(--surface);stroke:var(--border);stroke-width:1.5;transition:fill .2s,stroke .2s}
+.diagram .node text{fill:var(--text);font:600 13px var(--sans)}
+.diagram .node .sub{fill:var(--muted);font:12px var(--sans)}
+.diagram .node.hl rect{fill:var(--accent-soft);stroke:var(--accent);stroke-width:2.5}
+.diagram .edge{stroke:var(--muted);stroke-width:1.5;fill:none}
+.diagram .edge-label{fill:var(--muted);font:11px var(--sans)}
+.diagram .arrowhead{fill:var(--muted)}
+/* trace */
+.trace{display:grid;gap:8px}
+.step{border:1px solid var(--border);border-radius:10px;padding:10px 14px;background:var(--surface);font:13.5px/1.5 var(--mono);white-space:pre-wrap;word-break:break-word;display:none}
+.step.shown{display:block;animation:fade .25s ease}
+.step .lbl{font-family:var(--sans);font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:.06em;margin-right:6px}
+.step.thought .lbl{color:var(--accent-text)} .step.action .lbl{color:var(--kw)} .step.obs .lbl{color:var(--good)} .step.final .lbl{color:var(--warn)}
+.step.final{border-color:var(--warn)}
+@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+/* temperature */
+.bars{display:grid;gap:6px;margin:12px 0}
+.bar{display:grid;grid-template-columns:80px 1fr 56px;gap:10px;align-items:center;font-size:14px}
+.bar .track{background:var(--surface-2);border-radius:6px;height:20px;overflow:hidden}
+.bar .fill{background:var(--accent);height:100%;width:0;transition:width .25s}
+.bar .pct{font-family:var(--mono);font-size:13px;text-align:right;color:var(--muted)}
+input[type=range]{width:100%;accent-color:var(--accent)}
+/* quiz */
+.quiz-q{margin:16px 0}
+.opt{display:block;width:100%;text-align:left;margin:6px 0;padding:10px 12px}
+.opt.correct{background:var(--good-soft);border-color:var(--good);color:var(--good)}
+.opt.wrong{background:var(--bad-soft);border-color:var(--bad);color:var(--bad)}
+.explain{font-size:14px;color:var(--muted);margin-top:6px;display:none}
+.explain.shown{display:block}
+.score{font-size:1.2rem;font-weight:700}
+/* blanks */
+.blank-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:10px 0;font-family:var(--mono);font-size:13.5px}
+.blank-row input{font:inherit;padding:5px 8px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);min-width:120px}
+.blank-row input.ok{border-color:var(--good);background:var(--good-soft)}
+.blank-row input.no{border-color:var(--bad);background:var(--bad-soft)}
+.blank-row .hint{font-family:var(--sans);font-size:13px;color:var(--muted)}
+/* flashcards */
+.flash{perspective:1000px;min-height:180px;cursor:pointer}
+.flash-inner{position:relative;min-height:180px;transition:transform .45s;transform-style:preserve-3d}
+.flash.flipped .flash-inner{transform:rotateY(180deg)}
+.flash-face{position:absolute;inset:0;backface-visibility:hidden;display:flex;align-items:center;justify-content:center;text-align:center;padding:20px;border-radius:var(--radius);border:1px solid var(--border);background:var(--surface);box-shadow:var(--shadow)}
+.flash-face.back{transform:rotateY(180deg);background:var(--accent-soft);font-size:15px}
+.flash-face.front{font-size:1.25rem;font-weight:700}
+@media (max-width:900px){
+  .layout{grid-template-columns:minmax(0,1fr)}
+  #menuBtn{display:inline-block}
+  nav.side{position:fixed;top:57px;left:0;bottom:0;width:260px;height:auto;background:var(--bg);transform:translateX(-100%);transition:transform .2s;z-index:30;box-shadow:var(--shadow)}
+  nav.side.open{transform:none}
+  main{padding:20px 16px 80px}
+  h1{font-size:1.6rem}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+<header class="top">
+  <button id="menuBtn" aria-label="Open menu">☰</button>
+  <div class="brand">Campaign Generator · Study Guide</div>
+  <div class="spacer"></div>
+  <span class="progress-pill" id="progressPill">0 / 0 questions known</span>
+  <button id="themeBtn" aria-label="Toggle theme">◐</button>
+</header>
+<div class="layout">
+<nav class="side" id="sideNav">
+  <div class="grp">Project</div>
+  <a href="#overview">1. Overview</a>
+  <a href="#architecture">2. Architecture</a>
+  <a href="#data">3. Data</a>
+  <div class="grp">Theory</div>
+  <a href="#llm">4. LLM fundamentals</a>
+  <a href="#temperature">5. Temperature lab</a>
+  <a href="#prompting">6. Prompt engineering</a>
+  <a href="#groq">7. Groq &amp; Llama 4</a>
+  <a href="#langchain">8. LangChain building blocks</a>
+  <a href="#react">9. Agents &amp; ReAct</a>
+  <a href="#sqlagent">10. SQL agent</a>
+  <a href="#structured">11. Structured output</a>
+  <a href="#safety">12. Safety &amp; guardrails</a>
+  <a href="#eval">13. Evaluation</a>
+  <a href="#marketing">14. Marketing concepts</a>
+  <a href="#production">15. Production concerns</a>
+  <div class="grp">Hands-on</div>
+  <a href="#walkthrough">16. Code walkthrough</a>
+  <a href="#blanks">17. Fill the blanks</a>
+  <a href="#fixes">18. Bugs fixed</a>
+  <a href="#run">19. Run it yourself</a>
+  <div class="grp">Practice</div>
+  <a href="#flashcards">20. Flashcards</a>
+  <a href="#quiz">21. Quiz</a>
+  <a href="#interview">22. Interview questions</a>
+  <a href="#glossary">23. Glossary</a>
+</nav>
+<main>
+
+<!-- 1 -->
+<section id="overview">
+  <h1>AI-Based Marketing Campaign Generator</h1>
+  <p class="lead">A complete study companion for the project: what it does, the theory behind every component, how the code works line by line, and the interview questions you should be able to answer about it.</p>
+  <div class="grid">
+    <div class="card"><strong>Problem</strong><p>Marketing teams spend hours brainstorming a catchy <b>Title</b>, a compelling <b>Email</b> and a strong <b>CTA</b> for every product — slow, inconsistent, and tiring.</p></div>
+    <div class="card"><strong>Solution</strong><p>Give the system a <b>Product ID</b>. A <b>SQL agent</b> fetches the product from SQLite; a <b>campaign agent</b> uses an LLM tool to write Title + Email + CTA.</p></div>
+    <div class="card"><strong>Stack</strong><p>Python · SQLite · LangChain 0.3 (agents, tools, SQL toolkit) · Groq API · Llama 4 Scout · Pydantic · (optional) Llama Guard.</p></div>
+    <div class="card"><strong>Business value</strong><p>Faster time-to-market, consistent messaging, personalisation per audience, less creative fatigue, easy A/B variants.</p></div>
+  </div>
+  <div class="callout"><strong>The 30-second pitch (memorise this)</strong>
+  "I built an agentic marketing assistant. A user enters a product ID; a LangChain ReAct SQL agent reasons over a SQLite schema to retrieve the product's name, target age, profession and details. That context is passed to a second agent whose tool prompts Llama 4 on Groq to generate a tagline, a 100–150-word email and a CTA. I used temperature 0 for factual steps, opened the database read-only, validated input IDs, and added Pydantic structured output and a Llama Guard check so the content is safe and machine-usable."</div>
+</section>
+
+<!-- 2 -->
+<section id="architecture">
+  <h2>2. Architecture</h2>
+  <p>Two agents, one database, one LLM tool. Click a stage to read what it does — the same boxes light up when you play the ReAct trace in section 9.</p>
+  <div class="card diagram">
+    <svg viewBox="0 0 860 300" role="img" aria-label="Pipeline: Product ID to SQL agent to SQLite, then campaign agent to campaign tool, then safety check and output">
+      <defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="arrowhead" d="M0,0L10,5L0,10z"/></marker></defs>
+      <g class="node" data-node="input" tabindex="0"><rect x="10" y="40" width="130" height="64" rx="10"/><text x="75" y="68" text-anchor="middle">Product ID</text><text class="sub" x="75" y="88" text-anchor="middle">"1011" → P1011</text></g>
+      <g class="node" data-node="sql" tabindex="0"><rect x="190" y="40" width="160" height="64" rx="10"/><text x="270" y="68" text-anchor="middle">SQL Agent</text><text class="sub" x="270" y="88" text-anchor="middle">ReAct · temp 0</text></g>
+      <g class="node" data-node="db" tabindex="0"><rect x="190" y="200" width="160" height="64" rx="10"/><text x="270" y="228" text-anchor="middle">SQLite products.db</text><text class="sub" x="270" y="248" text-anchor="middle">read-only</text></g>
+      <g class="node" data-node="agent" tabindex="0"><rect x="400" y="40" width="170" height="64" rx="10"/><text x="485" y="68" text-anchor="middle">Campaign Agent</text><text class="sub" x="485" y="88" text-anchor="middle">ReAct · picks tool</text></g>
+      <g class="node" data-node="tool" tabindex="0"><rect x="400" y="200" width="170" height="64" rx="10"/><text x="485" y="228" text-anchor="middle">Campaign Generator</text><text class="sub" x="485" y="248" text-anchor="middle">Tool → LLM prompt</text></g>
+      <g class="node" data-node="guard" tabindex="0"><rect x="620" y="40" width="100" height="64" rx="10"/><text x="670" y="68" text-anchor="middle">Guard</text><text class="sub" x="670" y="88" text-anchor="middle">Llama Guard</text></g>
+      <g class="node" data-node="out" tabindex="0"><rect x="750" y="40" width="100" height="64" rx="10"/><text x="800" y="62" text-anchor="middle">Output</text><text class="sub" x="800" y="80" text-anchor="middle">Title · Email</text><text class="sub" x="800" y="96" text-anchor="middle">CTA</text></g>
+      <path class="edge" d="M140,72 L188,72" marker-end="url(#ah)"/>
+      <path class="edge" d="M250,104 L250,198" marker-end="url(#ah)"/><text class="edge-label" x="190" y="155">SELECT</text>
+      <path class="edge" d="M290,198 L290,106" marker-end="url(#ah)"/><text class="edge-label" x="298" y="155">rows</text>
+      <path class="edge" d="M350,72 L398,72" marker-end="url(#ah)"/><text class="edge-label" x="352" y="62">text</text>
+      <path class="edge" d="M465,104 L465,198" marker-end="url(#ah)"/><text class="edge-label" x="408" y="155">Action</text>
+      <path class="edge" d="M505,198 L505,106" marker-end="url(#ah)"/><text class="edge-label" x="512" y="155">Observation</text>
+      <path class="edge" d="M570,72 L618,72" marker-end="url(#ah)"/>
+      <path class="edge" d="M720,72 L748,72" marker-end="url(#ah)"/>
+    </svg>
+  </div>
+  <div class="card" id="nodeInfo" aria-live="polite"><strong>Click a box above.</strong></div>
+</section>
+
+<!-- 3 -->
+<section id="data">
+  <h2>3. Data</h2>
+  <p>One table, <code>products</code>, five rows. Small on purpose: the interesting part is how an agent <em>discovers</em> and queries it.</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>product_id</th><th>product_name</th><th>target_age</th><th>target_profession</th></tr></thead>
+    <tbody>
+      <tr><td>P1011</td><td>Golden Future Mutual Fund</td><td>30-50</td><td>Salaried Professional</td></tr>
+      <tr><td>P1012</td><td>Golden Years Savings Account</td><td>60-75</td><td>Retired Professional</td></tr>
+      <tr><td>P1013</td><td>Balanced Growth Investment Fund</td><td>30-55</td><td>Salaried Professional</td></tr>
+      <tr><td>P1014</td><td>Senior Advantage Fixed Deposit</td><td>60-75</td><td>Retired and Semi-Retired Professionals</td></tr>
+      <tr><td>P1015</td><td>Dynamic Opportunity Savings &amp; Investment Combo</td><td>40-65</td><td>Salaried and Semi-Retired Professionals</td></tr>
+    </tbody>
+  </table></div>
+  <p>Plus a long free-text <code>product_details</code> column (features, benefits, strategy). That free text is what lets the LLM personalise: e.g. P1011 → "long-term wealth, growth"; P1012 → "security, minimal fees, ease".</p>
+  <div class="callout good"><strong>Observation from the original runs</strong>The model pivoted tone by audience: wealth-building language for 30–50 salaried professionals, security-and-ease language for 60–75 retirees — without being told to. That is the audience field doing its job in the prompt.</div>
+</section>
+
+<!-- 4 -->
+<section id="llm">
+  <h2>4. LLM fundamentals</h2>
+  <h3>What an LLM actually does</h3>
+  <p>A Large Language Model is a <b>Transformer</b> trained to predict the next <b>token</b> (a word piece) given previous tokens. Generation is a loop: compute a probability distribution over the vocabulary → pick a token → append it → repeat until a stop token or <code>max_tokens</code>.</p>
+  <div class="grid">
+    <div class="card"><strong>Tokens</strong><p>~4 characters of English per token. Pricing, rate limits and context windows are all measured in tokens.</p></div>
+    <div class="card"><strong>Context window</strong><p>Maximum tokens (prompt + output) a model can attend to in one call. Everything the model "knows" about your product must fit here.</p></div>
+    <div class="card"><strong>Self-attention</strong><p>Each token builds its representation by weighting every other token — this is how "retirees" in the details influences the email's tone.</p></div>
+    <div class="card"><strong>Instruction tuning / RLHF</strong><p>Base models are fine-tuned on instructions and human preferences so they follow prompts like "write a 100–150 word email".</p></div>
+  </div>
+  <h3>Why LLMs hallucinate</h3>
+  <p>They optimise for <em>plausible</em> text, not <em>true</em> text. If product facts are missing, the model fills gaps with plausible inventions ("12% guaranteed returns!"). This project reduces that by <b>grounding</b> — fetching real product data from the database and telling the model not to invent numbers.</p>
+  <h3>Chat models &amp; messages</h3>
+  <p>Chat models take a list of messages with roles: <code>SystemMessage</code> (behaviour/persona), <code>HumanMessage</code> (user input), <code>AIMessage</code> (model output), <code>ToolMessage</code> (tool results). LangChain's <code>.invoke()</code> returns an <code>AIMessage</code>; you read <code>.content</code>.</p>
+</section>
+
+<!-- 5 -->
+<section id="temperature">
+  <h2>5. Temperature lab</h2>
+  <p>The notebook creates two models: <code>llm</code> at temperature 0 and <code>llm_high</code> at temperature 2. Temperature <i>T</i> divides the logits before softmax: <code>p<sub>i</sub> = exp(z<sub>i</sub>/T) / Σ exp(z<sub>j</sub>/T)</code>. Low T sharpens the distribution; high T flattens it.</p>
+  <div class="card">
+    <p style="margin-top:0">Next-token distribution after the prompt <code>"Grow your ___"</code></p>
+    <label for="tempSlider">Temperature: <b id="tempVal">0.70</b></label>
+    <input type="range" id="tempSlider" min="0" max="2" step="0.05" value="0.7">
+    <div class="bars" id="tempBars"></div>
+    <div class="toolbar"><button class="primary" id="sampleBtn">Sample 10 tokens</button><span id="sampleOut" style="font-family:var(--mono);font-size:14px"></span></div>
+  </div>
+  <div class="grid">
+    <div class="card"><strong>T = 0</strong><p>Greedy: always the top token. Use for SQL generation, extraction, agent reasoning — anything that must be correct and repeatable.</p></div>
+    <div class="card"><strong>T ≈ 0.7–1.0</strong><p>Creative but coherent. A good setting for taglines and A/B variants.</p></div>
+    <div class="card"><strong>T = 2 (Groq's max)</strong><p>Very flat distribution — unlikely tokens get picked, often producing incoherent text. The notebook comment "no definite range" is wrong: Groq's range is 0–2.</p></div>
+  </div>
+  <p><b>Related knobs:</b> <code>top_p</code> (nucleus sampling — keep the smallest set of tokens whose probability sums to p), <code>top_k</code> (keep only the k most likely), <code>max_tokens</code>, <code>frequency/presence_penalty</code>, <code>seed</code>. Tune temperature <em>or</em> top_p, not both aggressively.</p>
+</section>
+
+<!-- 6 -->
+<section id="prompting">
+  <h2>6. Prompt engineering</h2>
+  <p>The campaign prompt is a textbook example of a well-structured prompt. Dissect it:</p>
+<pre><code><span class="cm"># 1. Role / persona</span>
+You are a marketing campaign generator.
+<span class="cm"># 2. Task</span>
+Your task is to create a compelling marketing title, an engaging email draft, and a strong CTA ...
+<span class="cm"># 3. Constraints / tone</span>
+Ensure the content is professional, polite, and aligned with the product's marketing objectives.
+Do not invent returns, guarantees or numbers that are not in the product details.
+<span class="cm"># 4. Context, fenced with a heading delimiter</span>
+### Product Details:
+{product_details}
+<span class="cm"># 5. Output format with length limits</span>
+1. **Marketing Title:** (short, catchy, memorable)
+2. **Email Draft:** (100-150 words)
+3. **Call-to-Action (CTA):** (persuasive instruction)</code></pre>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Technique</th><th>What it is</th><th>In this project</th></tr></thead>
+    <tbody>
+      <tr><td>Zero-shot</td><td>Instructions only, no examples</td><td>Campaign prompt; "zero-shot-react-description" agent</td></tr>
+      <tr><td>Few-shot</td><td>Include 1–5 input→output examples</td><td>Add 2 approved past campaigns to lock in brand voice</td></tr>
+      <tr><td>Role prompting</td><td>"You are a …"</td><td>"marketing campaign generator", "SQL assistant"</td></tr>
+      <tr><td>Delimiters</td><td>Separate instructions from data (###, XML tags, triple quotes)</td><td><code>### Product Details:</code> — also mitigates prompt injection</td></tr>
+      <tr><td>Output spec</td><td>Explicit format, length, fields</td><td>Numbered Title / Email / CTA; Pydantic schema in the improved version</td></tr>
+      <tr><td>Chain-of-thought</td><td>Ask the model to reason step by step</td><td>ReAct's "Thought:" lines are CoT interleaved with actions</td></tr>
+      <tr><td>Negative constraints</td><td>Say what <em>not</em> to do</td><td>"Do not invent returns or guarantees" — vital for financial products</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<!-- 7 -->
+<section id="groq">
+  <h2>7. Groq &amp; Llama 4 Scout</h2>
+  <div class="grid">
+    <div class="card"><strong>Groq</strong><p>An inference provider running open models on its own <b>LPU</b> (Language Processing Unit) hardware, known for very high tokens/second. Exposes an OpenAI-compatible API; LangChain wraps it as <code>ChatGroq</code>. Free tier has per-minute and per-day limits.</p></div>
+    <div class="card"><strong>Llama 4 Scout 17B-16E</strong><p>Meta's open-weight <b>Mixture-of-Experts</b> model: 16 experts, ~17B parameters active per token (~109B total). MoE routes each token to a subset of expert sub-networks → big-model quality at small-model cost.</p></div>
+    <div class="card"><strong>Llama Guard</strong><p>A Llama model fine-tuned as a safety classifier. Given text, it replies <code>safe</code> or <code>unsafe</code> + hazard category codes (e.g. S2). Used as an output guardrail.</p></div>
+  </div>
+  <div class="callout warn"><strong>Secrets hygiene</strong>The key is read from Colab Secrets (<code>userdata.get('GROQ_API_KEY')</code>) or an environment variable — never hard-coded or committed to Git.</div>
+</section>
+
+<!-- 8 -->
+<section id="langchain">
+  <h2>8. LangChain building blocks</h2>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Concept</th><th>Class / function used</th><th>Role</th></tr></thead>
+    <tbody>
+      <tr><td>Chat model</td><td><code>ChatGroq</code></td><td>Uniform interface to any LLM provider (<code>invoke</code>, <code>stream</code>, <code>batch</code>)</td></tr>
+      <tr><td>Messages</td><td><code>SystemMessage</code>, <code>HumanMessage</code></td><td>Role-tagged chat inputs</td></tr>
+      <tr><td>Database wrapper</td><td><code>SQLDatabase.from_uri</code></td><td>SQLAlchemy-backed DB with schema introspection and <code>run()</code></td></tr>
+      <tr><td>Toolkit</td><td><code>SQLDatabaseToolkit</code></td><td>Bundles 4 SQL tools (list tables, schema, query checker, query)</td></tr>
+      <tr><td>Agent constructor</td><td><code>create_sql_agent</code>, <code>initialize_agent</code></td><td>Builds an <code>AgentExecutor</code> running the ReAct loop</td></tr>
+      <tr><td>Tool</td><td><code>Tool(name, func, description)</code></td><td>Wraps any Python function so an agent can call it</td></tr>
+      <tr><td>Prompt hub</td><td><code>hub.pull("hwchase17/react")</code></td><td>Downloads a shared prompt template (needs network); the improved code uses the built-in SQL prompt instead</td></tr>
+      <tr><td>Structured output</td><td><code>llm.with_structured_output(Model)</code></td><td>Returns a validated Pydantic object</td></tr>
+      <tr><td>LCEL</td><td><code>prompt | llm | parser</code></td><td>Composable "runnables" — the modern way to build chains</td></tr>
+    </tbody>
+  </table></div>
+  <h3>AgentExecutor in one paragraph</h3>
+  <p>The executor holds the agent (LLM + prompt + output parser) and tools. Each iteration it sends the prompt plus the <em>scratchpad</em> (previous Thought/Action/Observation text) to the LLM, parses the reply into either an <code>AgentAction</code> (run that tool, append its output as an Observation) or an <code>AgentFinish</code> (return the Final Answer). Safety valves: <code>max_iterations</code>, <code>max_execution_time</code>, <code>handle_parsing_errors</code>.</p>
+  <div class="callout warn"><strong>Version note</strong><code>initialize_agent</code> and <code>AgentExecutor</code> are legacy in LangChain 0.3; new projects should use <b>LangGraph</b> (<code>create_react_agent</code>) with native tool calling. Knowing both — and why the ecosystem moved — is a strong interview signal.</div>
+</section>
+
+<!-- 9 -->
+<section id="react">
+  <h2>9. Agents &amp; the ReAct loop</h2>
+  <p>An <b>agent</b> is an LLM that decides <em>which action to take next</em> instead of following a hard-coded sequence. <b>ReAct</b> (Reason + Act, Yao et al. 2022) interleaves reasoning traces with tool calls:</p>
+<pre><code>Question → <b>Thought</b> → <b>Action</b> + Action Input → <b>Observation</b> → Thought → … → <b>Final Answer</b></code></pre>
+  <p>"<b>Zero-shot</b>-react-<b>description</b>" means the agent receives no examples of tool use; it chooses tools purely from their <b>descriptions</b>. That's why a clear tool description matters.</p>
+  <div class="card">
+    <div class="toolbar">
+      <button id="tracePrev">◀ Prev</button>
+      <button class="primary" id="traceNext">Next step ▶</button>
+      <button id="tracePlay">▶ Play all</button>
+      <button id="traceReset">Reset</button>
+      <span class="progress-pill" id="traceCount"></span>
+    </div>
+    <div class="trace" id="trace"></div>
+  </div>
+  <p>Watch the architecture diagram above while stepping: the active component highlights. Note there are <b>two</b> ReAct loops — one inside the SQL agent, one inside the campaign agent.</p>
+</section>
+
+<!-- 10 -->
+<section id="sqlagent">
+  <h2>10. The SQL agent (text-to-SQL)</h2>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Tool</th><th>Input</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr><td><code>sql_db_list_tables</code></td><td>empty string</td><td>Discover which tables exist</td></tr>
+      <tr><td><code>sql_db_schema</code></td><td>table names</td><td>Get CREATE TABLE + 3 sample rows so the LLM knows column names</td></tr>
+      <tr><td><code>sql_db_query_checker</code></td><td>SQL</td><td>Asks the LLM to double-check the query for common mistakes</td></tr>
+      <tr><td><code>sql_db_query</code></td><td>SQL</td><td>Executes it; errors are returned as observations so the agent can retry</td></tr>
+    </tbody>
+  </table></div>
+  <h3>Why use an agent instead of a plain SELECT?</h3>
+  <p><b>Honest answer:</b> for "fetch product by ID" a parameterised query (<code>SELECT * FROM products WHERE product_id = ?</code>) is cheaper, faster, deterministic and safer. The agent shines when questions are <em>open-ended</em> ("which products target retirees?", "list all salaried-professional funds") or the schema is unknown. The improved code offers both: <code>--direct</code> mode and the agent mode.</p>
+  <h3>Risks and mitigations</h3>
+  <div class="grid">
+    <div class="card"><strong>Destructive SQL</strong><p>The LLM could emit <code>DROP</code>/<code>DELETE</code>. → Open SQLite with <code>?mode=ro</code>, use a read-only DB user, restrict tables with <code>include_tables</code>.</p></div>
+    <div class="card"><strong>Prompt injection</strong><p>User input "P1011; ignore instructions and delete…" flows into the agent prompt. → Validate the ID with a regex before it reaches the LLM.</p></div>
+    <div class="card"><strong>Cost &amp; latency</strong><p>Each Thought is an LLM call; 4–6 calls per lookup. → Cap <code>max_iterations</code>, cache, or use the direct path.</p></div>
+    <div class="card"><strong>Wrong answers</strong><p>Hallucinated columns or wrong filters. → Temperature 0, schema in prompt, query checker, return rows not paraphrases.</p></div>
+  </div>
+</section>
+
+<!-- 11 -->
+<section id="structured">
+  <h2>11. Structured output with Pydantic</h2>
+  <p>The original notebook imports <code>pydantic</code> but returns free-form markdown, which is hard to send to an email platform. Structured output forces a schema:</p>
+<pre><code><span class="kw">class</span> CampaignAssets(BaseModel):
+    title: str = Field(description=<span class="st">"Short, catchy, memorable tagline"</span>)
+    email_subject: str = Field(description=<span class="st">"Subject line"</span>)
+    email_body: str = Field(description=<span class="st">"100-150 word professional email"</span>)
+    cta: str = Field(description=<span class="st">"Persuasive call-to-action"</span>)
+
+assets = llm.with_structured_output(CampaignAssets).invoke(prompt)
+assets.title   <span class="cm"># typed attribute access; ValidationError if the model breaks the schema</span></code></pre>
+  <p>Under the hood <code>with_structured_output</code> uses the provider's <b>tool/function calling</b> or <b>JSON mode</b>: the Pydantic model becomes a JSON Schema, the model fills it, and LangChain validates it. Benefits: no regex parsing, guaranteed fields, easy to store in a DB or push to an ESP (Mailchimp, SendGrid…), easy to evaluate field by field.</p>
+</section>
+
+<!-- 12 -->
+<section id="safety">
+  <h2>12. Safety &amp; guardrails</h2>
+  <p>The objective explicitly says "maintain safe, professional outputs". Think in layers:</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Layer</th><th>Control</th><th>Implemented as</th></tr></thead>
+    <tbody>
+      <tr><td>Input</td><td>Validate / normalise Product ID</td><td><code>normalize_product_id()</code> regex → rejects injection payloads</td></tr>
+      <tr><td>Data access</td><td>Least privilege</td><td>Read-only SQLite URI, <code>include_tables=["products"]</code></td></tr>
+      <tr><td>Prompt</td><td>Grounding + negative constraints</td><td>"Do not invent returns, guarantees or numbers"</td></tr>
+      <tr><td>Agent</td><td>Bounded autonomy</td><td><code>max_iterations</code>, <code>handle_parsing_errors</code></td></tr>
+      <tr><td>Output</td><td>Content moderation</td><td>Llama Guard → withhold if <code>unsafe</code></td></tr>
+      <tr><td>Process</td><td>Human-in-the-loop</td><td>Marketer/compliance approves before sending</td></tr>
+    </tbody>
+  </table></div>
+  <div class="callout warn"><strong>Domain-specific risk: financial promotions</strong>All five products are financial. Regulators (e.g. SEBI in India, FCA in the UK, SEC/FINRA in the US) require fair, non-misleading promotions with risk disclaimers — "Mutual fund investments are subject to market risks…". An LLM promising "guaranteed growth" is a compliance incident, not just a quality bug. Add a mandatory disclaimer and a compliance review step.</div>
+</section>
+
+<!-- 13 -->
+<section id="eval">
+  <h2>13. Evaluating generated campaigns</h2>
+  <div class="grid">
+    <div class="card"><strong>Rule-based checks</strong><p>Email length 100–150 words, title ≤ 10 words, CTA present, product name mentioned, no banned phrases ("guaranteed"), disclaimer present.</p></div>
+    <div class="card"><strong>Factual consistency</strong><p>Every claim traceable to <code>product_details</code>. Can be checked by an LLM-as-judge with the source text.</p></div>
+    <div class="card"><strong>LLM-as-judge</strong><p>A second model scores tone, audience fit, clarity, persuasiveness on a 1–5 rubric. Calibrate against human ratings.</p></div>
+    <div class="card"><strong>Human review</strong><p>Marketers rate drafts; track the edit distance between draft and final as a quality signal.</p></div>
+    <div class="card"><strong>Online A/B testing</strong><p>The real metric: open rate (subject/title), click-through rate (CTA), conversion rate, unsubscribe rate.</p></div>
+    <div class="card"><strong>Regression tests</strong><p>Fake LLMs (as in <code>tests/</code>) make the pipeline testable offline; golden prompts catch prompt regressions.</p></div>
+  </div>
+</section>
+
+<!-- 14 -->
+<section id="marketing">
+  <h2>14. Marketing concepts you should know</h2>
+  <div class="grid">
+    <div class="card"><strong>Title / tagline</strong><p>Short, memorable, benefit-led. "Grow Your Future, Secure Your Legacy." Often doubles as subject line.</p></div>
+    <div class="card"><strong>Email draft</strong><p>Subject → personalised greeting → hook → 2–3 benefits for <em>this</em> audience → social proof → CTA → sign-off.</p></div>
+    <div class="card"><strong>CTA</strong><p>Action verb + value + urgency: "Schedule your free consultation today". One primary CTA per email.</p></div>
+    <div class="card"><strong>AIDA</strong><p>Attention (title) → Interest (hook) → Desire (benefits) → Action (CTA). A great structure to put in the prompt.</p></div>
+    <div class="card"><strong>Segmentation &amp; personalisation</strong><p>target_age + target_profession are the segment; the LLM adapts vocabulary and benefits per segment.</p></div>
+    <div class="card"><strong>Funnel metrics</strong><p>Impressions → opens → clicks → conversions. Title drives opens, CTA drives clicks.</p></div>
+  </div>
+</section>
+
+<!-- 15 -->
+<section id="production">
+  <h2>15. Taking it to production</h2>
+  <ul>
+    <li><b>Rate limits &amp; retries:</b> exponential backoff on 429s; queue bulk generation; fall back to another model.</li>
+    <li><b>Cost/latency:</b> the agent path makes ~6–8 LLM calls per campaign; the direct path makes 1. Cache product lookups; batch requests.</li>
+    <li><b>Observability:</b> trace every agent step (LangSmith, OpenTelemetry), log prompts/outputs with PII redaction, track token usage.</li>
+    <li><b>Prompt management:</b> version prompts in Git, review prompt changes like code, run golden-set evals in CI.</li>
+    <li><b>Serving:</b> wrap in FastAPI; a UI in Streamlit/Gradio; async for throughput.</li>
+    <li><b>Scaling to many products:</b> replace SQLite with Postgres; add RAG over brand guidelines and past winning campaigns to keep voice consistent.</li>
+    <li><b>Feedback loop:</b> feed A/B results back as few-shot examples of high-performing copy.</li>
+    <li><b>Framework evolution:</b> migrate <code>initialize_agent</code> → LangGraph for state, persistence, human-approval interrupts.</li>
+  </ul>
+</section>
+
+<!-- 16 -->
+<section id="walkthrough">
+  <h2>16. Code walkthrough (notebook order)</h2>
+  <details open><summary>Step 1 — Install pinned libraries</summary>
+<pre><code>%pip install -qU langchain==0.3.27 langchain-community==0.3.27 langchain-groq==0.3.8 ...</code></pre>
+  <p>Pinning versions makes the notebook reproducible — LangChain changes fast. Restart the runtime after installing so the new packages load.</p></details>
+  <details><summary>Step 2 — Load the API key</summary>
+<pre><code><span class="kw">from</span> google.colab <span class="kw">import</span> userdata
+os.environ[<span class="st">'GROQ_API_KEY'</span>] = userdata.get(<span class="st">'GROQ_API_KEY'</span>)</code></pre>
+  <p>Colab Secrets keep keys out of the notebook file. <code>ChatGroq</code> also reads <code>GROQ_API_KEY</code> from the environment automatically.</p></details>
+  <details><summary>Step 3 — Two LLMs with different temperatures</summary>
+<pre><code>llm_high = ChatGroq(model=MODEL, temperature=<span class="st">2</span>)  <span class="cm"># creative</span>
+llm      = ChatGroq(model=MODEL, temperature=<span class="st">0</span>)  <span class="cm"># deterministic</span>
+print(llm.invoke(<span class="st">"Hello, how are you?"</span>).content)</code></pre>
+  <p>Agents and SQL need determinism → <code>llm</code>. <code>llm_high</code> is for brainstorming variants. Interesting result in the original run: both gave nearly the same greeting — for short, highly constrained prompts the top token dominates even at high T.</p></details>
+  <details><summary>Step 4 — Database + toolkit</summary>
+<pre><code>db = SQLDatabase.from_uri(<span class="st">"sqlite:///file:/content/products.db?mode=ro&amp;uri=true"</span>)
+toolkit = SQLDatabaseToolkit(db=db, llm=llm)</code></pre>
+  <p>Four slashes in <code>sqlite:////content/products.db</code> = <code>sqlite:///</code> + absolute path <code>/content/…</code>. The improved version adds <code>mode=ro</code>.</p></details>
+  <details><summary>Step 5 — SQL agent</summary>
+<pre><code>sqlite_agent = create_sql_agent(
+    llm=llm, toolkit=toolkit,
+    agent_type=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
+    prefix=system_message + <span class="st">"\n\nYou have access to the following tools:"</span>,
+    max_iterations=<span class="st">8</span>,
+    agent_executor_kwargs={<span class="st">"handle_parsing_errors"</span>: <span class="kw">True</span>},
+)
+sqlite_agent.invoke(<span class="st">"Fetch all the unique product_id with product_name"</span>)</code></pre>
+  <p>Returns a dict <code>{'input': ..., 'output': ...}</code>. <code>handle_parsing_errors</code> belongs on the <em>executor</em>; in the original it was passed as a plain kwarg to the agent where it has no effect.</p></details>
+  <details><summary>Step 6 — Campaign tool</summary>
+<pre><code><span class="kw">def</span> campaign_generation_func(input: str) -&gt; str:
+    prompt = CAMPAIGN_PROMPT.format(product_details=input)
+    <span class="kw">return</span> llm.invoke([HumanMessage(content=prompt)]).content.strip()
+
+tools = [Tool(name=<span class="st">"Campaign Generator"</span>, func=campaign_generation_func,
+              description=<span class="st">"Generates marketing campaign assets (title, email, CTA) based on product details."</span>)]</code></pre>
+  <p>The <b>description</b> is what the agent reads to decide to use the tool. The original used <code>llm([...])</code> (deprecated <code>__call__</code>); <code>.invoke</code> is the current API.</p></details>
+  <details><summary>Step 7 — Campaign agent</summary>
+<pre><code>agent = initialize_agent(tools, llm, agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
+                         handle_parsing_errors=<span class="kw">True</span>, max_iterations=<span class="st">4</span>)</code></pre></details>
+  <details><summary>Step 8 — Orchestrate</summary>
+<pre><code><span class="kw">def</span> campaign_generator(product_id=<span class="kw">None</span>):
+    p_id = normalize_product_id(product_id <span class="kw">or</span> input(<span class="st">"Enter Product ID (e.g., P1011): "</span>))
+    product_detail = sqlite_agent.invoke(<span class="st">f"Fetch all columns for Product ID {p_id}"</span>)[<span class="st">'output'</span>]
+    agent_prompt = <span class="st">f"Generate a marketing campaign for the following product details: {product_detail}"</span>
+    <span class="kw">return</span> agent.invoke({<span class="st">"input"</span>: agent_prompt})[<span class="st">"output"</span>]</code></pre>
+  <p>Chaining two agents: the first agent's <code>output</code> string becomes the second agent's context. In the original run the user typed <code>1011</code> (no "P") and it only worked because the SQL agent guessed — normalisation makes that deterministic.</p></details>
+</section>
+
+<!-- 17 -->
+<section id="blanks">
+  <h2>17. Fill the blanks</h2>
+  <p>These are the <code>__</code> blanks from the course notebook. Type your answer and press <b>Check</b>.</p>
+  <div class="card" id="blanksBox"></div>
+  <div class="toolbar"><button class="primary" id="checkBlanks">Check</button><button id="revealBlanks">Reveal answers</button><span id="blankScore" class="score"></span></div>
+</section>
+
+<!-- 18 -->
+<section id="fixes">
+  <h2>18. Issues in the original notebook (and the fixes)</h2>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Original</th><th>Problem</th><th>Fix in this repo</th></tr></thead>
+    <tbody>
+      <tr><td><code>llm.predict(...)</code>, <code>llm([...])</code></td><td>Deprecated APIs</td><td><code>llm.invoke(...).content</code></td></tr>
+      <tr><td><code>agent.run(prompt)</code></td><td>Deprecated</td><td><code>agent.invoke({"input": prompt})["output"]</code></td></tr>
+      <tr><td><code>temperature=2 # no definite range</code></td><td>Groq's range is 0–2; T=2 often incoherent</td><td>Validated range; 1.0 for creative variants</td></tr>
+      <tr><td><code>handle_parsing_errors=True</code> passed to <code>create_sql_agent</code></td><td>Goes to the agent, not the executor → ignored</td><td><code>agent_executor_kwargs={"handle_parsing_errors": True}</code></td></tr>
+      <tr><td><code>system_message=SystemMessage(...)</code> with a ReAct prompt</td><td>Not used by the zero-shot ReAct path</td><td>Passed via <code>prefix=</code></td></tr>
+      <tr><td><code>prompt=hub.pull("hwchase17/react")</code></td><td>Network dependency; generic (non-SQL) prompt</td><td>Built-in SQL ReAct prompt</td></tr>
+      <tr><td>User typed <code>1011</code></td><td>Relies on LLM guessing the "P" prefix</td><td><code>normalize_product_id()</code></td></tr>
+      <tr><td>Writable DB</td><td>LLM-generated SQL could modify data</td><td><code>?mode=ro</code> URI + <code>include_tables</code></td></tr>
+      <tr><td>Unused imports (DDGS, pydantic, load_tools)</td><td>Noise</td><td>Pydantic used for structured output</td></tr>
+      <tr><td>No tests</td><td>Can't verify without an API key</td><td><code>tests/</code> with scripted <code>FakeListChatModel</code></td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<!-- 19 -->
+<section id="run">
+  <h2>19. Run it yourself</h2>
+<pre><code>pip install -r requirements.txt
+export GROQ_API_KEY=your_key_here
+python -m marketing_campaign.cli --list
+python -m marketing_campaign.cli --product-id P1011            <span class="cm"># two agents (notebook flow)</span>
+python -m marketing_campaign.cli --product-id 1012 --direct    <span class="cm"># 1 SQL query + 1 structured LLM call</span>
+python -m marketing_campaign.cli --product-id P1013 --creative --safety-check --verbose
+pytest -q                                                      <span class="cm"># offline, no API key needed</span></code></pre>
+  <p>Or open <code>notebooks/AI_Based_Marketing_Campaign_Generator.ipynb</code> in Colab, add <code>GROQ_API_KEY</code> to Secrets and run all cells.</p>
+</section>
+
+<!-- 20 -->
+<section id="flashcards">
+  <h2>20. Flashcards</h2>
+  <p>Click the card to flip.</p>
+  <div class="flash" id="flash" tabindex="0" role="button" aria-label="Flip flashcard"><div class="flash-inner"><div class="flash-face front" id="flashFront"></div><div class="flash-face back" id="flashBack"></div></div></div>
+  <div class="toolbar"><button id="flashPrev">◀</button><button class="primary" id="flashNext">Next ▶</button><button id="flashShuffle">Shuffle</button><span class="progress-pill" id="flashCount"></span></div>
+</section>
+
+<!-- 21 -->
+<section id="quiz">
+  <h2>21. Quiz</h2>
+  <div id="quizBox"></div>
+  <div class="toolbar"><span class="score" id="quizScore"></span><button id="quizReset">Restart quiz</button></div>
+</section>
+
+<!-- 22 -->
+<section id="interview">
+  <h2>22. Interview questions</h2>
+  <p>Try answering aloud before expanding. Mark questions as <b>known</b> — progress is saved in this browser.</p>
+  <div class="toolbar">
+    <input type="search" id="qSearch" placeholder="Search questions…" aria-label="Search questions">
+    <button id="expandAll">Expand all</button><button id="collapseAll">Collapse all</button>
+  </div>
+  <div class="toolbar" id="qFilters"></div>
+  <div id="qList"></div>
+</section>
+
+<!-- 23 -->
+<section id="glossary">
+  <h2>23. Glossary</h2>
+  <div class="table-wrap"><table><tbody id="glossaryBody"></tbody></table></div>
+</section>
+
+</main>
+</div>
+
+<script>
+(function(){
+"use strict";
+const store={get(k,d){try{const v=localStorage.getItem(k);return v===null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+const $=s=>document.querySelector(s), $$=s=>Array.from(document.querySelectorAll(s));
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+/* theme */
+const root=document.documentElement;
+const savedTheme=store.get("cg-theme",null); if(savedTheme) root.setAttribute("data-theme",savedTheme);
+$("#themeBtn").onclick=()=>{const dark=root.getAttribute("data-theme")?root.getAttribute("data-theme")==="dark":matchMedia("(prefers-color-scheme: dark)").matches;const t=dark?"light":"dark";root.setAttribute("data-theme",t);store.set("cg-theme",t)};
+
+/* mobile nav + scrollspy */
+const nav=$("#sideNav");
+$("#menuBtn").onclick=()=>nav.classList.toggle("open");
+$$("nav.side a").forEach(a=>a.addEventListener("click",()=>nav.classList.remove("open")));
+const links=$$("nav.side a"), secs=links.map(a=>document.querySelector(a.getAttribute("href")));
+const spy=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){links.forEach(l=>l.classList.toggle("active",l.getAttribute("href")==="#"+e.target.id))}})},{rootMargin:"-30% 0px -65% 0px"});
+secs.forEach(s=>s&&spy.observe(s));
+
+/* architecture node info */
+const nodeInfo={
+  input:["Product ID input","User types an ID such as P1011 (or 1011). <code>normalize_product_id()</code> validates it with a regex and adds the P prefix — invalid input never reaches the LLM, which blocks prompt-injection attempts."],
+  sql:["SQL Agent","A ReAct agent built with <code>create_sql_agent</code>. With temperature 0 it lists tables, reads the schema, writes a SELECT, checks it and executes it, then summarises the row as text."],
+  db:["SQLite products.db","One table <code>products</code> (5 rows). Opened through a read-only URI (<code>?mode=ro</code>) so generated SQL can't modify data."],
+  agent:["Campaign Agent","A zero-shot ReAct agent (<code>initialize_agent</code>) with one tool. It reads the tool's description, decides to call it with the product details, and returns the tool's output as its Final Answer."],
+  tool:["Campaign Generator tool","A Python function wrapped in <code>Tool</code>. It fills the campaign prompt template with product details and calls the LLM. Improved version can return a Pydantic <code>CampaignAssets</code> object."],
+  guard:["Guard (optional)","Llama Guard classifies the generated copy as safe / unsafe. Unsafe content is withheld. Pair with a human compliance review for financial products."],
+  out:["Output","Marketing Title, Email Draft (subject + 100–150 words), CTA. Ready for human review, A/B testing and sending."]
+};
+function highlight(id){$$(".diagram .node").forEach(n=>n.classList.toggle("hl",n.dataset.node===id))}
+$$(".diagram .node").forEach(n=>{const show=()=>{const [t,d]=nodeInfo[n.dataset.node];$("#nodeInfo").innerHTML="<strong>"+t+"</strong><p style='margin:.3em 0 0'>"+d+"</p>";highlight(n.dataset.node)};n.addEventListener("click",show);n.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();show()}});n.style.cursor="pointer"});
+
+/* temperature lab */
+const words=["future","wealth","savings","dreams","garden","banana"], logits=[3.2,2.9,2.1,1.5,0.3,-1.0];
+function probs(T){if(T<0.01){const m=Math.max(...logits);return logits.map(z=>z===m?1:0)}const ex=logits.map(z=>Math.exp(z/T));const s=ex.reduce((a,b)=>a+b,0);return ex.map(e=>e/s)}
+const bars=$("#tempBars");
+bars.innerHTML=words.map(w=>`<div class="bar"><span>${w}</span><div class="track"><div class="fill"></div></div><span class="pct"></span></div>`).join("");
+function renderTemp(){const T=parseFloat($("#tempSlider").value);$("#tempVal").textContent=T.toFixed(2);const p=probs(T);$$("#tempBars .bar").forEach((b,i)=>{b.querySelector(".fill").style.width=(p[i]*100).toFixed(1)+"%";b.querySelector(".pct").textContent=(p[i]*100).toFixed(1)+"%"})}
+$("#tempSlider").addEventListener("input",renderTemp);renderTemp();
+$("#sampleBtn").onclick=()=>{const p=probs(parseFloat($("#tempSlider").value));const out=[];for(let k=0;k<10;k++){let r=Math.random(),i=0;while(i<p.length-1&&(r-=p[i])>0)i++;out.push(words[i])}$("#sampleOut").textContent=out.join(", ")};
+
+/* ReAct trace */
+const trace=[
+  ["thought","sql","[SQL agent] I should look at the tables in the database to see what I can query."],
+  ["action","sql","Action: sql_db_list_tables\nAction Input: \"\""],
+  ["obs","db","products"],
+  ["thought","sql","I should query the schema of the products table."],
+  ["action","sql","Action: sql_db_schema\nAction Input: products"],
+  ["obs","db","CREATE TABLE products (product_id TEXT PRIMARY KEY, product_name TEXT NOT NULL, target_age TEXT, target_profession TEXT, product_details TEXT)\n/* 3 rows from products table: ... */"],
+  ["thought","sql","I can now write the query. I'll check it first."],
+  ["action","sql","Action: sql_db_query_checker\nAction Input: SELECT * FROM products WHERE product_id = 'P1011'"],
+  ["obs","sql","SELECT * FROM products WHERE product_id = 'P1011'"],
+  ["action","sql","Action: sql_db_query\nAction Input: SELECT * FROM products WHERE product_id = 'P1011'"],
+  ["obs","db","[('P1011', 'Golden Future Mutual Fund', '30-50', 'Salaried Professional', 'The Golden Future Mutual Fund is designed for professionals looking to build long-term wealth ...')]"],
+  ["final","sql","Final Answer: product_id: P1011, product_name: Golden Future Mutual Fund, target_age: 30-50, target_profession: Salaried Professional, product_details: ..."],
+  ["thought","agent","[Campaign agent] I need to generate a marketing campaign. The Campaign Generator tool does exactly that."],
+  ["action","agent","Action: Campaign Generator\nAction Input: Golden Future Mutual Fund, 30-50, Salaried Professional, long-term wealth via large-cap and emerging-market equities ..."],
+  ["obs","tool","**Marketing Title:** \"Grow Your Future, Secure Your Legacy\"\n**Email Draft:** Subject: Invest in a Brighter Future ...\n**Call-to-Action (CTA):** \"Schedule a Consultation Today and Start Building Your Wealth!\""],
+  ["thought","agent","I now know the final answer."],
+  ["final","out","Final Answer: Marketing Title / Email Draft / CTA (returned to the user)"]
+];
+const labels={thought:"Thought",action:"Action",obs:"Observation",final:"Final"};
+$("#trace").innerHTML=trace.map(([k,,t])=>`<div class="step ${k}"><span class="lbl">${labels[k]}</span>${esc(t)}</div>`).join("");
+let tIdx=0,timer=null;const steps=$$("#trace .step");
+function renderTrace(){steps.forEach((s,i)=>s.classList.toggle("shown",i<tIdx));$("#traceCount").textContent=tIdx+" / "+steps.length;highlight(tIdx?trace[tIdx-1][1]:null)}
+$("#traceNext").onclick=()=>{if(tIdx<steps.length){tIdx++;renderTrace()}};
+$("#tracePrev").onclick=()=>{if(tIdx>0){tIdx--;renderTrace()}};
+$("#traceReset").onclick=()=>{clearInterval(timer);tIdx=0;renderTrace()};
+$("#tracePlay").onclick=()=>{clearInterval(timer);if(tIdx>=steps.length)tIdx=0;timer=setInterval(()=>{if(tIdx>=steps.length){clearInterval(timer);return}tIdx++;renderTrace()},900)};
+renderTrace();
+
+/* blanks */
+const blanks=[
+  ["os.environ['GROQ_API_KEY'] = userdata.get(", ")", ["'GROQ_API_KEY'","\"GROQ_API_KEY\""], "Name of the Colab secret"],
+  ["llm = ChatGroq(model=MODEL, temperature=", ")", ["0","0.0"], "Deterministic setting"],
+  ["response = llm.", "(\"Hello, how are you?\")", ["invoke","predict"], "Method that sends the prompt"],
+  ["db = SQLDatabase.", "(\"sqlite:////content/products.db\")", ["from_uri"], "Class method that loads a DB from a URL"],
+  ["toolkit = SQLDatabaseToolkit(db=db, llm=", ")", ["llm"], "Which model does the toolkit use?"],
+  ["create_sql_agent(llm=llm, db=db, agent_type=", ")", ["\"zero-shot-react-description\"","'zero-shot-react-description'","AgentType.ZERO_SHOT_REACT_DESCRIPTION","zero-shot-react-description"], "ReAct agent type string"],
+  ["product_detail = product_details[", "]", ["'output'","\"output\""], "Key holding the agent's answer"],
+  ["Tool(name=\"Campaign Generator\", func=", ", description=...)", ["campaign_generation_func"], "The Python function to wrap"],
+  ["agent = initialize_agent(", ", llm, agent=\"zero-shot-react-description\")", ["tools"], "First positional argument"]
+];
+const norm=s=>s.trim().replace(/\s+/g,"");
+$("#blanksBox").innerHTML=blanks.map(([a,b,,h],i)=>`<div class="blank-row"><span>${esc(a)}</span><input data-i="${i}" aria-label="Blank ${i+1}" autocomplete="off" spellcheck="false"><span>${esc(b)}</span><span class="hint">— ${esc(h)}</span></div>`).join("");
+$("#checkBlanks").onclick=()=>{let ok=0;$$("#blanksBox input").forEach(inp=>{const good=blanks[inp.dataset.i][2].some(a=>norm(a)===norm(inp.value));inp.classList.toggle("ok",good);inp.classList.toggle("no",!good);ok+=good});$("#blankScore").textContent=ok+" / "+blanks.length};
+$("#revealBlanks").onclick=()=>{$$("#blanksBox input").forEach(inp=>{inp.value=blanks[inp.dataset.i][2][0];inp.classList.add("ok");inp.classList.remove("no")})};
+
+/* flashcards */
+let cards=[
+  ["ReAct","Reason + Act: the LLM alternates Thought → Action (tool call) → Observation until it can give a Final Answer."],
+  ["Temperature","Divides logits before softmax. 0 = greedy/deterministic, higher = more random. Groq range 0–2."],
+  ["Zero-shot-react-description","Agent type that picks tools using only their descriptions, with no worked examples in the prompt."],
+  ["SQLDatabaseToolkit","4 tools: list tables, get schema, query checker, run query."],
+  ["AgentExecutor","Runtime loop that calls the agent, executes chosen tools, feeds observations back, and stops on Final Answer or max_iterations."],
+  ["Tool","Name + Python function + description. The description is the agent's only guide to when to use it."],
+  ["Grounding","Supplying real source data (DB rows) in the prompt so output is based on facts, not the model's guesses."],
+  ["Hallucination","Fluent but false output — e.g. inventing a guaranteed return rate."],
+  ["Structured output","llm.with_structured_output(PydanticModel) — schema-validated object instead of free text."],
+  ["Llama Guard","Safety classifier model that labels text safe/unsafe with hazard categories."],
+  ["Prompt injection","Malicious instructions hidden in input that try to override the system prompt."],
+  ["Mixture of Experts","Model with many expert sub-networks; a router activates only a few per token (Llama 4 Scout: 16 experts, 17B active)."],
+  ["CTA","Call-to-Action: the single instruction telling the reader what to do next (e.g. 'Schedule a free consultation')."],
+  ["AIDA","Attention, Interest, Desire, Action — classic copywriting structure."],
+  ["LPU","Groq's Language Processing Unit: inference hardware optimised for fast token generation."],
+  ["handle_parsing_errors","AgentExecutor option: if the LLM's reply can't be parsed into Action/Final Answer, feed the error back instead of crashing."]
+];
+let fIdx=0;
+function renderFlash(){$("#flash").classList.remove("flipped");$("#flashFront").textContent=cards[fIdx][0];$("#flashBack").textContent=cards[fIdx][1];$("#flashCount").textContent=(fIdx+1)+" / "+cards.length}
+$("#flash").onclick=()=>$("#flash").classList.toggle("flipped");
+$("#flash").onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();$("#flash").classList.toggle("flipped")}};
+$("#flashNext").onclick=()=>{fIdx=(fIdx+1)%cards.length;renderFlash()};
+$("#flashPrev").onclick=()=>{fIdx=(fIdx-1+cards.length)%cards.length;renderFlash()};
+$("#flashShuffle").onclick=()=>{cards=cards.map(c=>[Math.random(),c]).sort((a,b)=>a[0]-b[0]).map(x=>x[1]);fIdx=0;renderFlash()};
+renderFlash();
+
+/* quiz */
+const quiz=[
+  ["Which temperature is best for the SQL agent?",["0","1","2","It doesn't matter"],0,"SQL must be exact and repeatable; temperature 0 gives greedy, deterministic decoding."],
+  ["What does an agent use to decide which tool to call in a zero-shot-react-description agent?",["Few-shot examples","The tool's description","The tool's Python source code","Random choice"],1,"Zero-shot = no examples; the tool name + description are injected into the prompt."],
+  ["Which SQLDatabaseToolkit tool returns CREATE TABLE statements and sample rows?",["sql_db_list_tables","sql_db_query","sql_db_schema","sql_db_query_checker"],2,"sql_db_schema returns the DDL plus 3 sample rows per table."],
+  ["What does sqlite_agent.invoke(query) return?",["A string","A dict with 'input' and 'output'","A pandas DataFrame","An AIMessage"],1,"AgentExecutor.invoke returns a dict; the answer is in ['output']."],
+  ["The best way to stop an LLM-driven SQL agent from deleting data is…",["Ask nicely in the prompt","Use temperature 0","Connect with read-only permissions","Use a bigger model"],2,"Prompts are not security boundaries; enforce least privilege at the database."],
+  ["In ReAct, what is an 'Observation'?",["The model's reasoning","The tool's returned output","The user's question","The final answer"],1,"Observation = result of executing the Action, appended to the scratchpad."],
+  ["Why might T=2 produce poor marketing copy?",["It's slower","Distribution becomes so flat that unlikely, incoherent tokens get sampled","It uses more tokens","It disables the system prompt"],1,"High temperature flattens probabilities, so rare tokens become likely."],
+  ["What is grounding?",["Fine-tuning the model","Supplying factual source data in the prompt","Lowering temperature","Running on Groq"],1,"Grounding = conditioning output on retrieved facts (here, DB rows)."],
+  ["Llama 4 Scout '17B-16E' means…",["17B total params, 16 layers","~17B active params, 16 experts (MoE)","17 experts, 16B params","16-bit, 17 epochs"],1,"Mixture-of-Experts with 16 experts and ~17B parameters active per token."],
+  ["Which replaces the deprecated llm.predict()?",["llm.run()","llm.invoke()","llm.call()","llm.generate_text()"],1,"Runnables expose invoke / batch / stream."],
+  ["What benefit does with_structured_output give?",["Faster inference","Schema-validated fields (title, email, cta) instead of free text","Lower cost","Removes need for prompts"],1,"Output is a validated Pydantic object, easy to store and send."],
+  ["Which metric best measures CTA effectiveness?",["Open rate","Click-through rate","Bounce rate","Token count"],1,"Subject/title drives opens; the CTA drives clicks."],
+  ["Why validate the Product ID with a regex before the agent?",["Formatting only","Prevents prompt/SQL injection and removes reliance on the LLM guessing the format","Required by SQLite","Makes Groq faster"],1,"Untrusted input should be validated before it reaches an LLM that can call tools."],
+  ["Where should handle_parsing_errors=True go for create_sql_agent?",["prefix","agent_executor_kwargs","toolkit","SQLDatabase"],1,"It's an AgentExecutor parameter."],
+  ["Which is a legitimate reason to use the agent instead of a direct SELECT?",["Single-ID lookups","Open-ended natural-language questions over an unfamiliar schema","Lower latency","Determinism"],1,"Agents add flexibility for open-ended questions; for ID lookups direct SQL wins."]
+];
+let answered={},score=0;
+function renderQuiz(){answered={};score=0;$("#quizBox").innerHTML=quiz.map(([q,opts],i)=>`<div class="card quiz-q"><strong>Q${i+1}. ${esc(q)}</strong>${opts.map((o,j)=>`<button class="opt" data-q="${i}" data-o="${j}">${esc(o)}</button>`).join("")}<div class="explain" id="ex${i}"></div></div>`).join("");$("#quizScore").textContent="Score: 0 / "+quiz.length;
+$$("#quizBox .opt").forEach(b=>b.onclick=()=>{const qi=+b.dataset.q,oi=+b.dataset.o;if(answered[qi])return;answered[qi]=1;const right=quiz[qi][2];$$(`#quizBox .opt[data-q="${qi}"]`).forEach(x=>{if(+x.dataset.o===right)x.classList.add("correct")});if(oi===right)score++;else b.classList.add("wrong");const ex=$("#ex"+qi);ex.textContent=(oi===right?"✓ Correct. ":"✗ Not quite. ")+quiz[qi][3];ex.classList.add("shown");$("#quizScore").textContent="Score: "+score+" / "+quiz.length+(Object.keys(answered).length===quiz.length?(score>=12?" — excellent!":" — review sections 4–12 and retry"):"")})}
+$("#quizReset").onclick=renderQuiz;renderQuiz();
+
+/* interview questions */
+const Q=[
+ // Project
+ ["Project","easy","Walk me through your AI marketing campaign generator end to end.","User enters a Product ID → validated/normalised → a LangChain ReAct SQL agent (temperature 0) explores the SQLite schema and SELECTs the product row → the text summary goes to a second ReAct agent whose single tool fills a campaign prompt and calls Llama 4 Scout on Groq → returns Title, 100–150-word Email and CTA. Optional Pydantic structured output and Llama Guard moderation. Mention the business goal: faster, consistent, personalised campaigns."],
+ ["Project","easy","Why did you use two LLM instances with different temperatures?","Different jobs need different decoding. SQL generation and agent reasoning must be exact and repeatable → temperature 0. Creative copy / A/B variants benefit from diversity → higher temperature. In practice ~0.7–1.0 is better than 2, which can become incoherent."],
+ ["Project","medium","Why use an SQL agent to fetch a single row by ID? Isn't that overkill?","Yes for pure ID lookup — a parameterised SELECT is cheaper, faster, deterministic and safer, which is why I added a --direct mode. The agent demonstrates natural-language data access and becomes valuable for open-ended queries (\"which products target retirees?\") or when the schema evolves. Being able to articulate this trade-off is the point."],
+ ["Project","medium","Why is the campaign generator wrapped as a Tool inside an agent instead of being called directly?","Extensibility: the agent can choose between multiple tools (e.g. a web-search tool for competitor messaging, a brand-guideline retriever, a compliance checker) without rewriting orchestration. With one tool it adds a reasoning step and cost; a direct call or LCEL chain would be simpler. In production I'd use the agent only once there are real decisions to make."],
+ ["Project","medium","How does the system personalise content for different audiences?","target_age, target_profession and product_details are in the prompt. The model adapts vocabulary and benefits: 30–50 salaried → growth, long-term wealth; 60–75 retirees → security, low fees, ease. Could be strengthened with explicit persona instructions, few-shot examples per segment, and A/B feedback."],
+ ["Project","medium","What were the biggest problems you found in the original notebook?","Deprecated APIs (predict, __call__, run); handle_parsing_errors passed to the wrong object; hub.pull network dependency with a non-SQL prompt; unvalidated input (user typed 1011); writable database; temperature comment wrong (Groq range 0–2); no tests. Each was fixed (see section 18)."],
+ ["Project","hard","How would you scale this to 10,000 products and multiple brands?","Postgres instead of SQLite; skip the SQL agent for ID lookups; async/batched generation with a queue and rate-limit-aware retries; prompt templates per brand stored and versioned; RAG over brand guidelines and past top-performing campaigns; structured output into a campaigns table; automated checks + sampled human review; caching; cost dashboards; fallback models."],
+ ["Project","medium","How did you test code that depends on an LLM?","Separated deterministic parts (DB, ID normalisation) with unit tests; used LangChain's FakeListChatModel to script agent replies (Thought/Action/Final Answer) so the full SQL agent → campaign agent pipeline runs offline with no API key. For quality: golden-set evaluation and LLM-as-judge, run separately."],
+ // LLM
+ ["LLM fundamentals","easy","What is a token, and why does it matter?","A sub-word unit the model reads/writes (~4 chars of English). Context limits, latency, rate limits and pricing are all in tokens, so prompt length and output length directly affect cost and feasibility."],
+ ["LLM fundamentals","easy","Explain temperature, top-p and top-k.","Temperature scales logits (T→0 greedy, high T flatter). Top-k keeps the k most probable tokens. Top-p (nucleus) keeps the smallest set whose cumulative probability ≥ p. All three control the randomness/diversity trade-off; usually tune one."],
+ ["LLM fundamentals","medium","Why do LLMs hallucinate and how did you reduce it here?","They are trained to produce probable continuations, not verified facts, and fill missing information plausibly. Mitigations here: grounding with DB data, temperature 0 for factual steps, explicit \"do not invent numbers\" instruction, structured fields, and human review. Further: retrieval with citations, factual-consistency judges."],
+ ["LLM fundamentals","medium","What is a context window? What happens if product details exceed it?","Max tokens the model can process per call (prompt + completion). If exceeded you get an error or truncation. Options: summarise, chunk + retrieve relevant parts (RAG), or use a long-context model."],
+ ["LLM fundamentals","hard","What is a Mixture-of-Experts model and why is it efficient?","Layers contain many expert feed-forward networks plus a router that selects a few experts per token. Total parameters are large (capacity), but compute per token is only for active experts. Llama 4 Scout: 16 experts, ~17B active of ~109B total. Trade-offs: memory to hold all experts, load balancing during training."],
+ ["LLM fundamentals","medium","Difference between a base model and an instruction-tuned model?","A base model only continues text. Instruction-tuned models are further trained (SFT, RLHF/DPO) on instruction→response data so they follow directions, respect formats and refuse unsafe requests. We need the instruct variant for prompts like ours."],
+ ["LLM fundamentals","medium","Fine-tuning vs prompting vs RAG — when would you use each for this project?","Prompting first (cheap, fast iteration). RAG when the model needs up-to-date or large knowledge (brand guidelines, past campaigns, compliance rules). Fine-tuning (e.g. LoRA) when you need a consistent brand voice/format at scale and have hundreds+ of approved examples — it changes style more than knowledge."],
+ // Prompting
+ ["Prompt engineering","easy","What makes a good prompt? Use your campaign prompt as an example.","Role, clear task, constraints (tone, length, what not to do), clearly delimited context, and an explicit output format. Ours has: role \"marketing campaign generator\", task (title/email/CTA), tone (professional, polite), ### delimited product details, numbered output with a 100–150-word limit."],
+ ["Prompt engineering","medium","Zero-shot vs few-shot prompting — which would improve brand consistency?","Few-shot: including 2–3 approved past campaigns shows the model the exact voice, length and structure, which is more reliable than describing it. Trade-off: more tokens per call; choose examples dynamically (by product type) for best results."],
+ ["Prompt engineering","medium","What is chain-of-thought and how does it relate to ReAct?","CoT asks the model to reason step by step before answering, improving multi-step tasks. ReAct interleaves those reasoning steps with actions (tool calls) and observations, grounding reasoning in external information."],
+ ["Prompt engineering","hard","How would you defend against prompt injection in this system?","Validate inputs (regex for ID); keep untrusted data in delimited sections and instruct the model to treat it as data; least privilege for tools (read-only DB); don't let generated text trigger irreversible actions without approval; output moderation; monitor and red-team. Treat the prompt as a guideline, not a security boundary."],
+ // LangChain/agents
+ ["LangChain & agents","easy","What is an agent in LangChain, and how is it different from a chain?","A chain is a fixed sequence of steps. An agent uses the LLM to decide at runtime which tool to call next and when to stop, based on observations. More flexible, less predictable and more expensive."],
+ ["LangChain & agents","easy","Explain the ReAct pattern.","Reason + Act: the model writes a Thought, picks an Action and Action Input, the executor runs the tool and appends an Observation, and the loop repeats until the model writes a Final Answer. It combines reasoning with external information gathering."],
+ ["LangChain & agents","medium","What does 'zero-shot-react-description' mean?","Zero-shot: no worked examples of tool use in the prompt. ReAct: Thought/Action/Observation format. Description: tools are selected based on their natural-language descriptions. Hence descriptions must be precise."],
+ ["LangChain & agents","medium","What does AgentExecutor do and what are its key parameters?","Runs the agent loop: calls the LLM, parses output into AgentAction/AgentFinish, executes tools, manages the scratchpad. Key params: tools, max_iterations, max_execution_time, early_stopping_method, handle_parsing_errors, return_intermediate_steps, verbose."],
+ ["LangChain & agents","medium","What happens if the LLM output doesn't match the ReAct format?","The output parser raises OutputParserException. With handle_parsing_errors=True the executor sends the error back as an observation so the model can correct itself; otherwise the run crashes. A common failure with smaller models."],
+ ["LangChain & agents","medium","How do you make an agent pick the right tool reliably?","Clear, distinct tool names and descriptions stating when to use it and the expected input; few tools; low temperature; native tool-calling models (structured function calls) rather than text-parsed ReAct; evaluate tool-selection accuracy."],
+ ["LangChain & agents","hard","initialize_agent is deprecated. How would you rebuild this with LangGraph?","Define tools with @tool, use langgraph.prebuilt.create_react_agent(model, tools) which uses native tool calling and a state graph. Or build an explicit graph: fetch_product node → generate node → guard node → human_approval interrupt → send. Benefits: explicit state, checkpointing/persistence, human-in-the-loop, retries per node, streaming."],
+ ["LangChain & agents","medium","What is LCEL?","LangChain Expression Language: compose Runnables with the | operator (prompt | llm | parser). Every runnable supports invoke/batch/stream/async uniformly, enabling parallelism, fallbacks (.with_fallbacks) and retries (.with_retry)."],
+ ["LangChain & agents","medium","Native tool calling vs text-based ReAct?","Text ReAct relies on the model writing 'Action: ...' that a regex parser extracts — brittle. Native tool calling has the model emit a structured JSON function call validated against a schema — more reliable, supports parallel calls. Prefer native when the model supports it."],
+ // SQL
+ ["SQL agents","easy","Name the tools in SQLDatabaseToolkit.","sql_db_list_tables, sql_db_schema (DDL + sample rows), sql_db_query_checker (LLM double-checks SQL), sql_db_query (executes and returns results or errors)."],
+ ["SQL agents","medium","What are the risks of letting an LLM write SQL against production data?","Destructive statements, expensive full-table scans, data leakage of sensitive columns, wrong answers from hallucinated joins/filters, injection via user text. Mitigate with read-only credentials, allowed tables/views, row limits, timeouts, query validation, logging, and returning raw rows."],
+ ["SQL agents","medium","Why does sqlite:////content/products.db have four slashes?","SQLAlchemy URL format is dialect:/// + path. Three slashes start a relative path; the fourth is the leading slash of the absolute path /content/products.db."],
+ ["SQL agents","hard","How would you improve text-to-SQL accuracy on a large schema?","Give only relevant tables (include_tables or a table-selection step), add column descriptions and sample values, few-shot question→SQL examples (dynamically retrieved), use views that hide joins, validate with EXPLAIN / dry runs, self-correction on errors, and evaluate on a labelled question/SQL set (execution accuracy)."],
+ // Structured
+ ["Structured output","medium","How does with_structured_output work?","The Pydantic model is converted to a JSON Schema and passed via the provider's tool-calling or JSON mode. The model returns arguments matching it; LangChain parses and validates into the Pydantic object, raising on mismatch (or returning raw + parsing error with include_raw=True)."],
+ ["Structured output","easy","Why prefer structured output for campaign assets?","Guaranteed fields, typed access, no fragile regex, easy to store, A/B test and send via an email platform API, and easy to evaluate field-wise (e.g. title length)."],
+ // Safety
+ ["Safety & guardrails","medium","What is Llama Guard and how would you use it?","A Llama model fine-tuned to classify prompts/responses against a hazard taxonomy, outputting safe or unsafe + category codes. Use as an output filter: if unsafe, block/regenerate and log. It doesn't cover brand or regulatory compliance — combine with rule checks and human review."],
+ ["Safety & guardrails","hard","These are financial products. What extra controls are needed?","Regulators require fair, clear, not-misleading promotions: no guaranteed returns, mandatory risk disclaimers (e.g. 'Mutual fund investments are subject to market risks'), suitability for the audience, record keeping. Add disclaimer injection, banned-phrase checks, factual consistency checks against product_details, and compliance sign-off before sending."],
+ ["Safety & guardrails","medium","How do you handle PII if real customer names are inserted into emails?","Keep the LLM output templated ([Name]) and merge personal data later in the email platform, so PII never goes to the LLM provider. If unavoidable: data processing agreements, minimisation, redaction in logs, retention policies, consent compliance (GDPR/DPDP)."],
+ ["Safety & guardrails","medium","What is human-in-the-loop and where does it fit here?","A human approves or edits AI output before a consequential action. Here: marketer/compliance reviews drafts before sending; edits are captured as feedback for prompt improvement or fine-tuning."],
+ // Eval
+ ["Evaluation","medium","How would you evaluate the quality of generated campaigns?","Offline: rule checks (length, CTA present, disclaimer, banned words), factual consistency vs product data, LLM-as-judge rubric (tone, audience fit, clarity, persuasiveness) calibrated against human ratings, pairwise comparisons. Online: A/B tests on open rate, CTR, conversion, unsubscribes."],
+ ["Evaluation","hard","What are the pitfalls of LLM-as-a-judge?","Position bias, verbosity bias, self-preference for its own model family, inconsistency across runs, poor calibration. Mitigate with clear rubrics, pairwise comparisons with swapped order, a different judge model, temperature 0, and agreement checks against human labels."],
+ ["Evaluation","medium","How would you run an A/B test of AI-generated vs human-written subject lines?","Randomly split a segment, send variant A vs B, pre-define the primary metric (open rate) and sample size via power analysis, run for a fixed period, test significance (two-proportion z-test), watch guardrail metrics (unsubscribes, spam complaints)."],
+ // Production
+ ["Production","medium","How would you deal with Groq rate limits and outages?","Exponential backoff with jitter on 429/5xx, request queue with concurrency limits, caching, smaller/faster model for cheap steps, fallback provider via .with_fallbacks, and monitoring of quota usage."],
+ ["Production","medium","How would you reduce cost and latency of this pipeline?","Remove the SQL agent for ID lookups (6+ LLM calls → 0), call the generator tool directly (no campaign-agent reasoning), single structured call, cache by product+prompt version, batch generation, smaller model for simple steps, streaming for UX."],
+ ["Production","medium","How would you deploy this?","FastAPI service exposing /campaigns/{product_id}; config and secrets via environment/secret manager; Docker; tracing (LangSmith/OpenTelemetry); prompts versioned in Git; CI running offline tests + golden-set evals; Streamlit/Gradio UI for marketers with approve/edit buttons."],
+ ["Production","hard","How do you monitor an LLM application in production?","Log every request with prompt version, model, tokens, latency, cost, tool calls and outcome; trace agent steps; track error/parse-failure rates, moderation flags, human edit rates and business KPIs; alert on drift; periodically re-run golden-set evals, especially when the provider updates the model."],
+ // Behavioral
+ ["Behavioral","easy","What did you learn from this project?","How agents reason with tools; the cost/flexibility trade-off of agents vs deterministic code; the importance of temperature and prompt structure; that LLM apps need security (least privilege, input validation) and testing like any other software; keeping up with fast-moving framework APIs."],
+ ["Behavioral","medium","If a marketer complains that emails sound generic, what would you do?","Gather examples, define what 'on-brand' means, add brand voice guidelines and few-shot examples of approved copy, include more specific product benefits and audience pain points, try a slightly higher temperature or multiple variants to choose from, and measure with human ratings and A/B tests."],
+ ["Behavioral","medium","What would you do differently if you rebuilt it?","Deterministic data fetch, structured output from day one, LangGraph with a human-approval step, RAG over brand guidelines and compliance rules, an evaluation harness before tuning prompts, and a simple UI for marketers."]
+];
+let known=store.get("cg-known",{});let activeCat="All";
+const cats=["All",...new Set(Q.map(q=>q[0]))];
+$("#qFilters").innerHTML=cats.map(c=>`<button class="chip${c==="All"?" on":""}" data-c="${esc(c)}">${esc(c)}</button>`).join("");
+$$("#qFilters .chip").forEach(b=>b.onclick=()=>{activeCat=b.dataset.c;$$("#qFilters .chip").forEach(x=>x.classList.toggle("on",x===b));filterQ()});
+$("#qList").innerHTML=Q.map(([c,d,q,a],i)=>`<details class="qa${known[i]?" is-known":""}" data-i="${i}" data-c="${esc(c)}"><summary><span class="qtext"><span class="tag ${d}">${d}</span><span class="tag">${esc(c)}</span><br>${esc(q)}</span><button class="known" data-k="${i}">${known[i]?"✓ Known":"Mark known"}</button></summary><p>${esc(a)}</p></details>`).join("");
+$$("#qList .known").forEach(b=>b.addEventListener("click",e=>{e.preventDefault();e.stopPropagation();const i=b.dataset.k;if(known[i])delete known[i];else known[i]=1;store.set("cg-known",known);b.textContent=known[i]?"✓ Known":"Mark known";b.closest("details").classList.toggle("is-known",!!known[i]);updatePill()}));
+function filterQ(){const t=$("#qSearch").value.toLowerCase();$$("#qList details").forEach(d=>{const okC=activeCat==="All"||d.dataset.c===activeCat;const okT=!t||d.textContent.toLowerCase().includes(t);d.style.display=okC&&okT?"":"none"})}
+$("#qSearch").addEventListener("input",filterQ);
+$("#expandAll").onclick=()=>$$("#qList details").forEach(d=>{if(d.style.display!=="none")d.open=true});
+$("#collapseAll").onclick=()=>$$("#qList details").forEach(d=>d.open=false);
+function updatePill(){$("#progressPill").textContent=Object.keys(known).length+" / "+Q.length+" questions known"}
+updatePill();
+
+/* glossary */
+const gl=[["Agent","LLM that chooses actions/tools dynamically."],["AgentExecutor","LangChain runtime that loops agent → tool → observation."],["CTA","Call-to-action."],["Grounding","Conditioning output on real data."],["Groq","Fast LLM inference provider using LPUs."],["Hallucination","Plausible but false model output."],["LangChain","Python framework for LLM apps: models, prompts, tools, agents."],["LangGraph","Graph-based agent framework succeeding AgentExecutor."],["LCEL","LangChain Expression Language (prompt | llm | parser)."],["Llama Guard","Safety classification model."],["MoE","Mixture of Experts architecture."],["Prompt injection","Input that tries to override instructions."],["Pydantic","Python data validation library used for schemas."],["RAG","Retrieval-Augmented Generation: fetch relevant documents and add them to the prompt."],["ReAct","Reason + Act prompting pattern."],["SQLAlchemy","Python SQL toolkit underneath SQLDatabase."],["Temperature","Sampling randomness parameter."],["Token","Sub-word unit processed by the model."],["Tool","Function an agent can call, described in natural language."],["Top-p","Nucleus sampling threshold."]];
+$("#glossaryBody").innerHTML=gl.map(([t,d])=>`<tr><th style="width:180px">${esc(t)}</th><td>${esc(d)}</td></tr>`).join("");
+})();
+</script>
+</body>
+</html>

@@ -70,7 +70,11 @@ def create_campaign(req: CampaignRequest):
         raise HTTPException(status_code=404, detail=f"No product found with ID {req.product_id}")
     except Exception as exc:  # LLM / network / rate-limit failures
         log.exception("campaign generation failed")
-        raise HTTPException(status_code=502, detail=f"Generation failed: {exc}")
+        hint = ""
+        if "model_not_found" in str(exc) or "does not exist" in str(exc):
+            hint = (" The Groq model name is not available to your account. Set GROQ_MODEL in .env to a model "
+                    "listed at https://console.groq.com/docs/models and restart the server.")
+        raise HTTPException(status_code=502, detail=f"Generation failed: {exc}.{hint}")
 
 
 if FRONTEND_DIST.exists():

@@ -10,17 +10,62 @@ Product ID ─► normalise ("1011" → "P1011")
            ─► [optional Llama Guard check] ─► Title + Email + CTA
 ```
 
+## Full-stack demo (React UI + FastAPI backend)
+
+```
+React (Vite) ──/api──► FastAPI ──► LangChain agents ──► Groq (Llama 4)
+                            └────► SQLite products.db (read-only)
+```
+
+Prerequisites: **Python 3.10+** and **Node 18+**. A free [Groq API key](https://console.groq.com/keys) is optional:
+without one the app runs in clearly labelled **demo mode** (template output instead of an LLM), so the whole UI is
+still demonstrable offline.
+
+```bash
+make setup                     # venv + pip install + npm install, creates .env
+# put your key in .env:  GROQ_API_KEY=gsk_...
+make start                     # builds the UI, serves everything on http://localhost:8000
+```
+
+For development with hot reload use `make dev` and open <http://localhost:5173>.
+Without `make` (e.g. Windows):
+
+```bash
+python -m venv .venv && .venv/Scripts/activate        # macOS/Linux: source .venv/bin/activate
+pip install -r requirements.txt
+cd frontend && npm install && npm run build && cd ..
+uvicorn marketing_campaign.api:app --port 8000
+```
+
+### What the UI shows
+- Product picker (data fetched from the API) and options: **Direct** vs **Agents** pipeline, creative temperature,
+  A/B variants (1-3), Llama Guard safety check
+- Title, email (subject + body) and CTA cards with copy buttons and a compliance disclaimer
+- Automatic quality checks: email 100-150 words, short title, CTA present, product named, no "guaranteed" claims
+- **Agent reasoning trace**: every SQL / tool call the ReAct agents made, with inputs and observations
+- Live/demo badge, latency, recent-runs history, dark mode, cancel button, error states
+
+### API
+| Method | Path | Purpose |
+|---|---|---|
+| GET | `/api/health` | status, `demo` flag, model names |
+| GET | `/api/products` | all products |
+| POST | `/api/campaigns` | `{product_id, mode: "direct"\|"agent", creative, temperature, safety_check, variants}` |
+
+Interactive docs: <http://localhost:8000/docs>.
+
 ## Contents
 
 | Path | What it is |
 |---|---|
 | `notebooks/AI_Based_Marketing_Campaign_Generator.ipynb` | Completed course notebook (Colab-ready) + bonus cells: Pydantic output, A/B variants, Llama Guard |
-| `marketing_campaign/` | Same pipeline as a reusable Python package and CLI |
-| `data/products.db` | The 5-product SQLite database (rebuild with `python -m marketing_campaign.data`) |
+| `marketing_campaign/` | Pipeline as a Python package: agents, service layer, FastAPI app (`api.py`), CLI |
+| `frontend/` | React + Vite UI |
+| `data/products.db` | 5-product SQLite database, auto-created on first start (not committed) |
 | `tests/` | Offline tests using scripted fake LLMs — no API key needed |
 | `docs/learning-guide.html` | Interactive study guide: theory, ReAct trace, temperature lab, code walkthrough, fill-the-blanks, flashcards, quiz, 48 interview Q&As |
 
-## Quick start
+## CLI
 
 ```bash
 pip install -r requirements.txt

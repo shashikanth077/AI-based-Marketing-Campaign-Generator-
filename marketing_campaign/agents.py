@@ -39,7 +39,7 @@ def load_database(db_path=DEFAULT_DB_PATH) -> SQLDatabase:
     )
 
 
-def build_sql_agent(llm, db_path=DEFAULT_DB_PATH, verbose: bool = False):
+def build_sql_agent(llm, db_path=DEFAULT_DB_PATH, verbose: bool = False, return_steps: bool = False):
     """ReAct SQL agent: LLM decides which SQL tools to call (list tables, schema, query)."""
     return create_sql_agent(
         llm=llm,
@@ -48,14 +48,20 @@ def build_sql_agent(llm, db_path=DEFAULT_DB_PATH, verbose: bool = False):
         prefix=SQL_SYSTEM_MESSAGE + "You have access to the following tools:",
         verbose=verbose,
         max_iterations=8,
-        agent_executor_kwargs={"handle_parsing_errors": True},
+        agent_executor_kwargs={"handle_parsing_errors": True, "return_intermediate_steps": return_steps},
     )
 
 
-def make_campaign_tool(llm) -> Tool:
-    """Wrap campaign generation as a LangChain Tool an agent can call."""
+def make_campaign_tool(llm, structured: bool = False) -> Tool:
+    """Wrap campaign generation as a LangChain Tool an agent can call.
+
+    With structured=True the tool returns CampaignAssets as JSON, so callers can read the
+    tool's observation instead of trusting the agent to repeat it verbatim.
+    """
 
     def campaign_generation_func(product_details: str) -> str:
+        if structured:
+            return generate_structured_campaign(llm, product_details).model_dump_json()
         prompt = CAMPAIGN_PROMPT.format(product_details=product_details)
         return llm.invoke([HumanMessage(content=prompt)]).content.strip()
 
@@ -69,15 +75,17 @@ def make_campaign_tool(llm) -> Tool:
     )
 
 
-def build_campaign_agent(llm, tool_llm=None, verbose: bool = False):
+def build_campaign_agent(llm, tool_llm=None, verbose: bool = False, structured: bool = False,
+                         return_steps: bool = False):
     """Zero-shot ReAct agent that uses the Campaign Generator tool."""
     return initialize_agent(
-        [make_campaign_tool(tool_llm or llm)],
+        [make_campaign_tool(tool_llm or llm, structured=structured)],
         llm,
         agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
         verbose=verbose,
         handle_parsing_errors=True,
         max_iterations=4,
+        return_intermediate_steps=return_steps,
     )
 
 
